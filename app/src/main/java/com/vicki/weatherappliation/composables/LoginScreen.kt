@@ -1,8 +1,12 @@
 package com.vicki.weatherappliation.composables
 
+import android.content.Context
+import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,36 +25,71 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Blue
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.vicki.weatherappliation.SimpleToolbar
 import com.vicki.weatherappliation.api.AppConstants
 import com.vicki.weatherappliation.api.NetworkResponse
 import com.vicki.weatherappliation.vm.AuthVM
-import kotlinx.coroutines.delay
 
 @Composable
-fun LoginScreen(navController: NavHostController, loginViewModel: AuthVM) {
+fun LoginScreen(navController: NavHostController, current: Context) {
+    val loginViewModel: AuthVM = viewModel()
+    val context = LocalContext.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val phone = remember { mutableStateOf("") }
+    val password = remember { mutableStateOf("") }
+    val isLoading = remember { mutableStateOf(false) }
+    val loginResult = loginViewModel.loginResult.observeAsState()
+    when (val result = loginResult.value) {
+        is NetworkResponse.Error -> {
+            Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
+            isLoading.value = false
+        }
 
-    Surface() {
+        NetworkResponse.Loading -> {}
+        is NetworkResponse.Success -> {
+            Toast.makeText(context, result?.data?.message, Toast.LENGTH_SHORT).show()
+            isLoading.value = false
+        }
+
+        null -> {}
+    }
+
+    Surface {
+        SimpleToolbar(headerText = "Login Screen", onNavigationClick = {
+            Toast.makeText(context, "Login Screen", Toast.LENGTH_SHORT).show()
+        })
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(10.dp), contentAlignment = Alignment.Center
         ) {
             Column {
-                PhoneNo(navController,loginViewModel)
+                PhoneNo(
+                    navController,
+                    loginViewModel,
+                    phone,
+                    password,
+                    keyboardController,
+                    isLoading,
+                    context
+                )
             }
         }
     }
@@ -59,21 +98,21 @@ fun LoginScreen(navController: NavHostController, loginViewModel: AuthVM) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PhoneNo(navController: NavHostController, loginViewModel: AuthVM) {
-
-    loginViewModel.loginResult
-
-    var phone by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-
-    val loginResult = loginViewModel.loginResult.observeAsState()
-
+fun PhoneNo(
+    navController: NavHostController,
+    loginViewModel: AuthVM,
+    phone: MutableState<String>,
+    password: MutableState<String>,
+    keyboardController: SoftwareKeyboardController?,
+    isLoading: MutableState<Boolean>,
+    context: Context
+) {
 
     OutlinedTextField(
-        value = phone,
+        value = phone.value,
         onValueChange = { newText ->
             if (newText.length <= 10) {
-                phone = newText
+                phone.value = newText
             }
         },
         label = { Text("Enter Phone Number") },
@@ -102,9 +141,9 @@ fun PhoneNo(navController: NavHostController, loginViewModel: AuthVM) {
 
 
     OutlinedTextField(
-        value = password,
+        value = password.value,
         onValueChange = { newPassword ->
-            password = newPassword
+            password.value = newPassword
         },
         label = { Text("Enter Password") },
         modifier = Modifier
@@ -117,9 +156,7 @@ fun PhoneNo(navController: NavHostController, loginViewModel: AuthVM) {
         ),
         keyboardActions = KeyboardActions(
             onDone = {
-                // Handle action when Done button is pressed on the keyboard
-                // For example, you can perform validation or submit the password
-                // You can also request focus to another field if needed
+                keyboardController?.hide()
             }
         ),
         singleLine = true,
@@ -130,8 +167,24 @@ fun PhoneNo(navController: NavHostController, loginViewModel: AuthVM) {
         ),
     )
 
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .clickable {
 
-    var isLoading by remember { mutableStateOf(false) }
+                navController.navigate(AppConstants.RouteConstants.REGISTER)
+
+
+            }, // Add padding if needed
+        horizontalArrangement = Arrangement.End,
+
+        ) {
+        Text(
+            text = "Not a Member? Register",
+            color = Color.Black
+        )
+    }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -140,15 +193,14 @@ fun PhoneNo(navController: NavHostController, loginViewModel: AuthVM) {
             .padding(16.dp)
             .fillMaxWidth()
     ) {
-        // Button or progress indicator based on isLoading state
-
-        if (!isLoading) {
+        if (!isLoading.value) {
             Button(
                 onClick = {
-                    if (phone.length == 10 && password.length >= 6) {
-                        isLoading = true
+                    if (phone.value.length == 10 && password.value.length >= 6) {
+                        isLoading.value = true
+                        keyboardController?.hide()
 
-                       loginViewModel.callLogin(phone,password)
+                        loginViewModel.callLogin(phone.value, password.value)
 
                     }
 
@@ -162,46 +214,18 @@ fun PhoneNo(navController: NavHostController, loginViewModel: AuthVM) {
                     contentColor = Color.White
                 )
             ) {
-                Text("Submit")
+                Text("Login")
             }
         }
 
-        if (isLoading) {
-            LaunchedEffect(Unit) {
-                delay(2000) // Simulate a delay (replace with actual async operation)
-                isLoading = false // Reset loading state after delay
-
-            }
+        if (isLoading.value) {
             CircularProgressIndicator(
                 modifier = Modifier
                     .size(36.dp)
                     .padding(8.dp)
             )
         }
-
-        when(loginResult.value){
-            is NetworkResponse.Error -> {
-
-            }
-            NetworkResponse.Loading -> {
-             }
-            is NetworkResponse.Success -> {
-                navController.navigate(AppConstants.RouteConstants.HOME) {
-                    popUpTo(AppConstants.RouteConstants.LOGIN) { inclusive = true }
-
-                }
-            }
-            null ->{
-
-            }
-        }
-
-
-
-
     }
-
-
 }
 
 

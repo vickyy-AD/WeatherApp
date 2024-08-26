@@ -38,13 +38,14 @@ import com.vicki.weatherappliation.model.WeatherDataModel
 import com.vicki.weatherappliation.vm.WeatherVM
 
 @Composable
-fun HomeScreen(viewModel: WeatherVM) {
+//fun HomeScreen(viewModel: WeatherVM) {
+fun HomeScreen() {
 
     var city by remember {
         mutableStateOf("")
     }
 
-    val weatherResult = viewModel.weatherResult.observeAsState()
+   // val weatherResult = viewModel.weatherResult.observeAsState()
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -72,7 +73,7 @@ fun HomeScreen(viewModel: WeatherVM) {
                 }
             )
             IconButton(onClick = {
-                viewModel.getData(city)
+              //  viewModel.getData(city)
                 keyboardController?.hide()
             }) {
                 Icon(imageVector = Icons.Default.Search,
@@ -82,19 +83,19 @@ fun HomeScreen(viewModel: WeatherVM) {
 
         }
 
-        when(val result = weatherResult.value){
-            is NetworkResponse.Error -> {
-                Text(text = result.message)
-            }
-            NetworkResponse.Loading -> {
-                CircularProgressIndicator()
-            }
-            is NetworkResponse.Success -> {
-                WeatherDetails(data = result.data)
-            }
-            null -> {
-            }
-        }
+//        when(val result = weatherResult.value){
+//            is NetworkResponse.Error -> {
+//                Text(text = result.message)
+//            }
+//            NetworkResponse.Loading -> {
+//                CircularProgressIndicator()
+//            }
+//            is NetworkResponse.Success -> {
+//                WeatherDetails(data = result.data)
+//            }
+//            null -> {
+//            }
+//        }
 
     }
 }

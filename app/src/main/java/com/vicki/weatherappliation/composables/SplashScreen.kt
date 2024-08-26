@@ -30,7 +30,7 @@ import com.vicki.weatherappliation.R
 fun SplashScreen(navController: NavHostController) {
     LaunchedEffect(Unit) {
         delay(1000)
-        navController.navigate(AppConstants.RouteConstants.HOME){
+        navController.navigate(AppConstants.RouteConstants.LOGIN){
             popUpTo(AppConstants.RouteConstants.SPLASH) { inclusive = true }
         }
     }

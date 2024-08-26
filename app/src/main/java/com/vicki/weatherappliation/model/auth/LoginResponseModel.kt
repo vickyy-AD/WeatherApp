@@ -1,7 +1,15 @@
 package com.vicki.weatherappliation.model.auth
 
+import com.google.gson.annotations.SerializedName
+
 data class LoginResponseModel(
-    val data: Data,
+
+    @SerializedName("status")
+    val status: Boolean,
+
+    @SerializedName("message")
     val message: String,
-    val status: Boolean
+
+    @SerializedName("data")
+    val data: Data
 )

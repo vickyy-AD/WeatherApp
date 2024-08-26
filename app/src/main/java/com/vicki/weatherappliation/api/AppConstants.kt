@@ -8,5 +8,6 @@ object AppConstants {
         val HOME = "HOME"
         val SPLASH = "SPLASH"
         val LOGIN = "LOGIN"
+        val REGISTER = "REGISTER"
     }
 }

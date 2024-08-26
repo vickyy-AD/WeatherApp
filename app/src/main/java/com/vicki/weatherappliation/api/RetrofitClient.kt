@@ -21,7 +21,7 @@ object RetrofitClient {
         private const val WEATHER_API = "https://api.weatherapi.com";
 
 
-        private const val BASE_URL = "http://127.0.0.1:8080/api/";
+        private const val BASE_URL = "http://192.168.1.22:8080/api/";
 
 
         private fun getWeatherInstance() : Retrofit {
@@ -44,7 +44,4 @@ object RetrofitClient {
 
         val weatherApi : WeatherApi = getWeatherInstance().create(WeatherApi::class.java)
         val localApi : LocalApi = getLocalApiInstance().create(LocalApi::class.java)
-
-
-
 }
