@@ -26,4 +26,9 @@ interface LocalApi {
         @Body requestBody: JsonObject
     ): Response<LoginResponseModel>
 
+    @POST("auth/register")
+    suspend fun callRegisterApi(
+        @Body requestBody: JsonObject
+    ): Response<LoginResponseModel>
+
 }

@@ -51,11 +51,14 @@ fun RegisterScreen(navController: NavHostController, current: Context) {
     val loginViewModel: AuthVM = viewModel()
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
+    val userName = remember { mutableStateOf("") }
     val phone = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
     val isLoading = remember { mutableStateOf(false) }
-    val loginResult = loginViewModel.loginResult.observeAsState()
-    when (val result = loginResult.value) {
+
+    val registerResponse = loginViewModel.registerLiveResponse.observeAsState()
+
+    when (val result = registerResponse.value) {
         is NetworkResponse.Error -> {
             Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
             isLoading.value = false
@@ -81,9 +84,10 @@ fun RegisterScreen(navController: NavHostController, current: Context) {
                 .padding(10.dp), contentAlignment = Alignment.Center
         ) {
             Column {
-                PhoneNo(
+                RegisterColumns(
                     navController,
                     loginViewModel,
+                    userName,
                     phone,
                     password,
                     keyboardController,
@@ -96,138 +100,168 @@ fun RegisterScreen(navController: NavHostController, current: Context) {
 }
 
 
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//fun PhoneNo(
-//    navController: NavHostController,
-//    loginViewModel: AuthVM,
-//    phone: MutableState<String>,
-//    password: MutableState<String>,
-//    keyboardController: SoftwareKeyboardController?,
-//    isLoading: MutableState<Boolean>,
-//    context: Context
-//) {
-//
-//    OutlinedTextField(
-//        value = phone.value,
-//        onValueChange = { newText ->
-//            if (newText.length <= 10) {
-//                phone.value = newText
-//            }
-//        },
-//        label = { Text("Enter Phone Number") },
-//        modifier = Modifier
-//            .padding(horizontal = 16.dp, vertical = 8.dp)
-//            .fillMaxWidth(),
-//        textStyle = LocalTextStyle.current.copy(color = Color.Black),
-//        keyboardOptions = KeyboardOptions(
-//            keyboardType = KeyboardType.Number,
-//            imeAction = ImeAction.Next
-//        ),
-//        keyboardActions = KeyboardActions(
-//            onNext = {
-//
-//            }
-//        ),
-//        singleLine = true,
-//        colors = TextFieldDefaults.outlinedTextFieldColors(
-//            focusedBorderColor = Blue, // Customize border color when focused
-//            unfocusedBorderColor = Color.Gray, // Customize border color when unfocused
-//            // Customize text color
-//            cursorColor = Blue // Customize cursor color
-//        )
-//    )
-//
-//
-//
-//    OutlinedTextField(
-//        value = password.value,
-//        onValueChange = { newPassword ->
-//            password.value = newPassword
-//        },
-//        label = { Text("Enter Password") },
-//        modifier = Modifier
-//            .padding(horizontal = 16.dp, vertical = 8.dp)
-//            .fillMaxWidth(),
-//        textStyle = LocalTextStyle.current.copy(color = Color.Black),
-//        keyboardOptions = KeyboardOptions(
-//            keyboardType = KeyboardType.Password,
-//            imeAction = ImeAction.Done
-//        ),
-//        keyboardActions = KeyboardActions(
-//            onDone = {
-//                keyboardController?.hide()
-//            }
-//        ),
-//        singleLine = true,
-//        colors = TextFieldDefaults.outlinedTextFieldColors(
-//            focusedBorderColor = Color.Blue, // Customize border color when focused
-//            unfocusedBorderColor = Color.Gray, // Customize border color when unfocused
-//            cursorColor = Color.Blue // Customize cursor color
-//        ),
-//    )
-//
-//    Row(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .padding(16.dp)
-//            .clickable {
-//
-//
-//                Toast
-//                    .makeText(context, "Move to Register", Toast.LENGTH_SHORT)
-//                    .show()
-//            }, // Add padding if needed
-//        horizontalArrangement = Arrangement.End,
-//
-//        ) {
-//        Text(
-//            text = "Not a Member? Register",
-//            color = Color.Black
-//        )
-//    }
-//
-//    Column(
-//        horizontalAlignment = Alignment.CenterHorizontally,
-//        verticalArrangement = Arrangement.Center,
-//        modifier = Modifier
-//            .padding(16.dp)
-//            .fillMaxWidth()
-//    ) {
-//        if (!isLoading.value) {
-//            Button(
-//                onClick = {
-//                    if (phone.value.length == 10 && password.value.length >= 6) {
-//                        isLoading.value = true
-//                        keyboardController?.hide()
-//
-//                        loginViewModel.callLogin(phone.value, password.value)
-//
-//                    }
-//
-//                },
-//                modifier = Modifier
-//                    .padding(8.dp)
-//                    .height(56.dp)
-//                    .fillMaxWidth(),
-//                shape = RoundedCornerShape(8.dp),
-//                colors = ButtonDefaults.buttonColors(
-//                    contentColor = Color.White
-//                )
-//            ) {
-//                Text("Login")
-//            }
-//        }
-//
-//        if (isLoading.value) {
-//            CircularProgressIndicator(
-//                modifier = Modifier
-//                    .size(36.dp)
-//                    .padding(8.dp)
-//            )
-//        }
-//    }
-//}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RegisterColumns(
+    navController: NavHostController,
+    loginViewModel: AuthVM,
+    userName: MutableState<String>,
+    phone: MutableState<String>,
+    password: MutableState<String>,
+    keyboardController: SoftwareKeyboardController?,
+    isLoading: MutableState<Boolean>,
+    context: Context
+) {
+
+    OutlinedTextField(
+        value = userName.value,
+        onValueChange = { newText ->
+            if (newText.length <= 10) {
+                userName.value = newText
+            }
+        },
+        label = { Text("Enter User Name") },
+        modifier = Modifier
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .fillMaxWidth(),
+        textStyle = LocalTextStyle.current.copy(color = Color.Black),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Text,
+            imeAction = ImeAction.Next
+        ),
+        keyboardActions = KeyboardActions(
+            onNext = {
+
+            }
+        ),
+        singleLine = true,
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            focusedBorderColor = Blue, // Customize border color when focused
+            unfocusedBorderColor = Color.Gray, // Customize border color when unfocused
+            // Customize text color
+            cursorColor = Blue // Customize cursor color
+        )
+    )
+
+
+    OutlinedTextField(
+        value = phone.value,
+        onValueChange = { newText ->
+            if (newText.length <= 10) {
+                phone.value = newText
+            }
+        },
+        label = { Text("Enter Phone Number") },
+        modifier = Modifier
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .fillMaxWidth(),
+        textStyle = LocalTextStyle.current.copy(color = Color.Black),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Number,
+            imeAction = ImeAction.Next
+        ),
+        keyboardActions = KeyboardActions(
+            onNext = {
+
+            }
+        ),
+        singleLine = true,
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            focusedBorderColor = Blue, // Customize border color when focused
+            unfocusedBorderColor = Color.Gray, // Customize border color when unfocused
+            // Customize text color
+            cursorColor = Blue // Customize cursor color
+        )
+    )
+
+
+
+    OutlinedTextField(
+        value = password.value,
+        onValueChange = { newPassword ->
+            password.value = newPassword
+        },
+        label = { Text("Enter Password") },
+        modifier = Modifier
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .fillMaxWidth(),
+        textStyle = LocalTextStyle.current.copy(color = Color.Black),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Password,
+            imeAction = ImeAction.Done
+        ),
+        keyboardActions = KeyboardActions(
+            onDone = {
+                keyboardController?.hide()
+            }
+        ),
+        singleLine = true,
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            focusedBorderColor = Color.Blue, // Customize border color when focused
+            unfocusedBorderColor = Color.Gray, // Customize border color when unfocused
+            cursorColor = Color.Blue // Customize cursor color
+        ),
+    )
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .clickable {
+
+                navController.popBackStack()
+
+            }, // Add padding if needed
+        horizontalArrangement = Arrangement.End,
+
+        ) {
+        Text(
+            text = "Already a Member! Login",
+            color = Color.Black
+        )
+    }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth()
+    ) {
+        if (!isLoading.value) {
+            Button(
+                onClick = {
+                    if (phone.value.length == 10 && password.value.length >= 6) {
+                        isLoading.value = true
+                        keyboardController?.hide()
+
+                        loginViewModel.callRegister(userName.value,phone.value, password.value)
+
+                    }
+
+                },
+                modifier = Modifier
+                    .padding(8.dp)
+                    .height(56.dp)
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    contentColor = Color.White
+                )
+            ) {
+                Text("Register")
+            }
+        }
+
+        if (isLoading.value) {
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .size(36.dp)
+                    .padding(8.dp)
+            )
+        }
+    }
+}
 
 
 

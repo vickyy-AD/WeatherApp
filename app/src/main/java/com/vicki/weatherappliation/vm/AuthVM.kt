@@ -23,16 +23,51 @@ class AuthVM : ViewModel() {
     var tag = "AuthVM";
 
     private val authApi = RetrofitClient.localApi
-    private val _loginResult = MutableLiveData<NetworkResponse<LoginResponseModel>>()
-     val loginResult : MutableLiveData<NetworkResponse<LoginResponseModel>> = _loginResult
 
-//    private val _loginResult = MutableStateFlow<ResponseData<LoginResponseModel>?>(null)
-//    val loginResult: StateFlow<ResponseData<LoginResponseModel>?> = _loginResult
+    private val loginMutableResponse = MutableLiveData<NetworkResponse<LoginResponseModel>>()
+    val loginLiveResponse: MutableLiveData<NetworkResponse<LoginResponseModel>> = loginMutableResponse
 
+
+    private val registerMutableResponse = MutableLiveData<NetworkResponse<LoginResponseModel>>()
+    val registerLiveResponse: MutableLiveData<NetworkResponse<LoginResponseModel>> = registerMutableResponse
+
+
+    fun callRegister(userName: String,phone: String, password: String) {
+        val jsonObject = JsonObject();
+        try {
+            jsonObject.addProperty("userName", userName);
+            jsonObject.addProperty("phoneNumber", phone);
+            jsonObject.addProperty("password", password);
+        } catch (e: JSONException) {
+            e.printStackTrace();
+        }
+
+        registerMutableResponse.value = NetworkResponse.Loading
+        viewModelScope.launch {
+            try {
+                val response = authApi.callRegisterApi(jsonObject)
+                if (response.isSuccessful) {
+                    response.body()?.let {
+                        registerMutableResponse.value = NetworkResponse.Success(it)
+                    }
+
+                } else {
+                    Log.e(tag, "Message :${response.body()?.message}")
+                    registerMutableResponse.value = NetworkResponse.Error(
+                        response.body()?.message.toString()
+                    )
+                }
+            } catch (e: Exception) {
+                registerMutableResponse.value = NetworkResponse.Error(e.message.toString())
+                Log.e("Check", e.message.toString())
+            }
+
+        }
+    }
 
 
     fun callLogin(phone: String, password: String) {
-         val jsonObject = JsonObject();
+        val jsonObject = JsonObject();
         try {
             jsonObject.addProperty("phoneNumber", phone);
             jsonObject.addProperty("password", password);
@@ -40,22 +75,23 @@ class AuthVM : ViewModel() {
             e.printStackTrace();
         }
 
-        _loginResult.value = NetworkResponse.Loading
-         viewModelScope.launch {
+        loginMutableResponse.value = NetworkResponse.Loading
+        viewModelScope.launch {
             try {
                 val response = authApi.callLoginApi(jsonObject)
                 if (response.isSuccessful) {
                     response.body()?.let {
-                        _loginResult.value = NetworkResponse.Success(it)
-                     }
+                        loginMutableResponse.value = NetworkResponse.Success(it)
+                    }
 
                 } else {
-                    Log.e(tag,"Message :${response.body()?.message}")
-                  _loginResult.value = NetworkResponse.Error(
-                      response.body()?.message.toString()
-                  )
+                    Log.e(tag, "Message :${response.body()?.message}")
+                    loginMutableResponse.value = NetworkResponse.Error(
+                        response.body()?.message.toString()
+                    )
                 }
             } catch (e: Exception) {
+                loginMutableResponse.value = NetworkResponse.Error(e.message.toString())
                 Log.e("Check", e.message.toString())
             }
 

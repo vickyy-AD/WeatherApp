@@ -54,7 +54,7 @@ fun LoginScreen(navController: NavHostController, current: Context) {
     val phone = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
     val isLoading = remember { mutableStateOf(false) }
-    val loginResult = loginViewModel.loginResult.observeAsState()
+    val loginResult = loginViewModel.loginLiveResponse.observeAsState()
     when (val result = loginResult.value) {
         is NetworkResponse.Error -> {
             Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
